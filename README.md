@@ -4,23 +4,15 @@
 **Academic Year:** 2025–2026  
 **Supervisor:** Dr. CHEGGOU Rabéa  
 
----
-
-> **📌 NOTE FOR STUDENTS:** This GitHub repository has been established for a **Better Collection** and professional archiving of your submitted works. It serves as the official digital library for the MI2 OOE projects.
-
----
-
 ## 👥 TEAM IDENTIFICATION
-*To be completed by the Project Leader:*
-- **Project Leader:** [Full Name]
-- **Group Number:** [e.g., G1, G2...]
+- **Project Leader:** [KADRI Yassamine]
+- **Group Number:** [ G4]
 - **Team Members:**
-  1. [Name 1]
-  2. [Name 2]
-  3. [Name 3]
-
----
-
+  1. [KHAIAT Hadda Douaa]
+  2. [BOUAASRIA Anissa]
+  3. [SENAD Zehira  ]
+  4. [MAHROUG Alae]
+  5. [ROHNI Ikhlas]
 ## 📂 PROJECT THEMES
 
 ### Theme 1: Physics of Refraction & Engineering Applications
