@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snell's Law - 3D Interactive Physics Simulation</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0f1729 100%);
+  overflow: hidden;
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+}
+
+#canvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* TITLE HEADER */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 40px;
+  background: rgba(10,14,26,0.95);
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(0, 245, 255, 0.2);
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #00f5ff 0%, #0066ff 50%, #00f5ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #00f5ff;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+/* =====================
+   LEFT COLUMN
+===================== */
+
+.stats-panel {
+  position: fixed;
+  left: 30px;
+  top: 100px;
+  width: 280px;
+  background: rgba(15, 20, 40, 0.92);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0, 245, 255, 0.2);
+  z-index: 50;
+}
+
+.stats-title {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #00f5ff;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 13px;
+  background: rgba(0, 245, 255, 0.05);
+  border-left: 3px solid #00f5ff;
+  border-radius: 8px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a0c4ff;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #00f5ff;
+}
+
+/* LEGEND */
+.legend {
+  width: 100%;
+  background: rgba(15, 20, 40, 0.92);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 15px;
+  padding: 18px 22px;
+  box-shadow: 0 20px 60px rgba(0, 245, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.legend-title {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #00f5ff;
+  margin-bottom: 13px;
+  text-transform: uppercase;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #d0e8ff;
+}
+
+.legend-color {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* FORMULA — bottom-left */
+.formula-display {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  background: rgba(15, 20, 40, 0.92);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 15px;
+  padding: 18px 22px;
+  box-shadow: 0 20px 60px rgba(0, 245, 255, 0.2);
+  z-index: 50;
+}
+
+.formula-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #a0c4ff;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.formula-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #00f5ff;
+  letter-spacing: 1px;
+}
+
+/* =====================
+   RIGHT COLUMN — scrollable
+===================== */
+
+.right-column {
+  position: fixed;
+  right: 30px;
+  top: 100px;
+  bottom: 30px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 50;
+  scrollbar-width: none;
+}
+.right-column::-webkit-scrollbar { display: none; }
+
+.control-panel {
+  width: 100%;
+  background: rgba(15, 20, 40, 0.92);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 20px;
+  padding: 22px 26px;
+  box-shadow: 0 20px 60px rgba(0, 245, 255, 0.2);
+  flex-shrink: 0;
+}
+
+/* INCIDENT RAY PANEL — same style as control-panel */
+.incident-panel {
+  width: 100%;
+  background: rgba(15, 20, 40, 0.92);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 20px;
+  padding: 22px 26px;
+  box-shadow: 0 20px 60px rgba(0, 245, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #00f5ff;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  border-bottom: 2px solid rgba(0, 245, 255, 0.3);
+  padding-bottom: 10px;
+}
+
+.control-group {
+  margin-bottom: 18px;
+}
+
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #a0c4ff;
+}
+
+.control-value {
+  font-family: 'JetBrains Mono', monospace;
+  color: #00f5ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #1a2340 0%, #2a4060 100%);
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00f5ff 0%, #0066ff 100%);
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(0, 245, 255, 0.8);
+  transition: all 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 28px rgba(0, 245, 255, 1);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00f5ff 0%, #0066ff 100%);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 18px rgba(0, 245, 255, 0.8);
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00f5ff 0%, #0066ff 100%);
+  color: #0a0e1a;
+  box-shadow: 0 5px 20px rgba(0, 245, 255, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 245, 255, 0.6);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #00f5ff;
+  border: 2px solid rgba(0, 245, 255, 0.3);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 245, 255, 0.2);
+  border-color: rgba(0, 245, 255, 0.6);
+}
+
+/* RAY INFO */
+.ray-info-block {
+  width: 100%;
+  background: rgba(15, 20, 40, 0.92);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 20px;
+  padding: 22px 26px;
+  box-shadow: 0 20px 60px rgba(0, 245, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.ray-info-title {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #00f5ff;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  border-bottom: 2px solid rgba(0, 245, 255, 0.3);
+  padding-bottom: 10px;
+}
+
+.ray-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 13px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.ray-item:hover {
+  background: rgba(0, 245, 255, 0.1);
+  transform: translateX(5px);
+}
+
+.ray-item:last-child { margin-bottom: 0; }
+
+.ray-color-indicator {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  margin-right: 13px;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.ray-details { flex: 1; }
+
+.ray-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.ray-description {
+  font-size: 10px;
+  color: #a0c4ff;
+  line-height: 1.4;
+}
+
+/* LOADER */
+.loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 200;
+}
+
+.loader-ring {
+  width: 70px;
+  height: 70px;
+  border: 4px solid rgba(0, 245, 255, 0.1);
+  border-top: 4px solid #00f5ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 18px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loader-text {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #00f5ff;
+  text-transform: uppercase;
+}
+</style>
+</head>
+
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Initializing Physics Engine...</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="title">SNELL'S LAW SIMULATOR</div>
+    <div class="subtitle">3D OPTICAL REFRACTION</div>
+  </div>
+</div>
+
+<!-- LEFT: STATS -->
+<div class="stats-panel">
+  <div class="stats-title">📊 Physics Data</div>
+  <div class="stat-item">
+    <span class="stat-label">θᵢ (Incident)</span>
+    <span class="stat-value" id="stat-theta-i">30.0°</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">θₜ (Transmitted)</span>
+    <span class="stat-value" id="stat-theta-t">19.2°</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">θc (Critical)</span>
+    <span class="stat-value" id="stat-theta-c">41.1°</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">n₁ (Air)</span>
+    <span class="stat-value">1.00</span>
+  </div>
+</div>
+
+<!-- LEFT: FORMULA (bottom) -->
+<div class="formula-display">
+  <div class="formula-title">Snell's Law (Vector Form)</div>
+  <div class="formula-text">T = ηI + (η cosθᵢ − cosθₜ) N</div>
+</div>
+
+<!-- RIGHT COLUMN -->
+<div class="right-column">
+
+  <!-- MEDIUM CONTROL PANEL (cyan) -->
+  <div class="control-panel">
+    <div class="panel-title">⚙️ Medium Controls</div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Refractive Index (n₂)</span>
+        <span class="control-value" id="n-display">1.52</span>
+      </div>
+      <input type="range" id="n-slider" min="1.0" max="2.5" value="1.52" step="0.01">
+    </div>
+
+    <div class="button-group">
+      <button class="btn btn-primary" id="update-btn">🔄 Update</button>
+      <button class="btn btn-secondary" id="reset-btn">↻ Reset</button>
+    </div>
+  </div>
+
+  <!-- INCIDENT RAY PANEL (cyan) -->
+  <div class="incident-panel">
+    <div class="panel-title">🔴 Incident Ray</div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Incident Angle</span>
+        <span class="control-value" id="angle-display">30°</span>
+      </div>
+      <input type="range" id="angle-slider" min="5" max="85" value="30" step="1">
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Position X</span>
+        <span class="control-value" id="incident-x-display">-5.0</span>
+      </div>
+      <input type="range" id="incident-x-slider" min="-8" max="-2" value="-5" step="0.5">
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Position Y</span>
+        <span class="control-value" id="incident-y-display">3.0</span>
+      </div>
+      <input type="range" id="incident-y-slider" min="1" max="6" value="3" step="0.5">
+    </div>
+
+    <div class="button-group">
+      <button class="btn btn-primary" id="ray-update-btn">🔴 Apply Ray</button>
+      <button class="btn btn-secondary" id="ray-reset-btn">↻ Reset Ray</button>
+    </div>
+  </div>
+
+  <!-- RAY INFO -->
+  <div class="ray-info-block">
+    <div class="ray-info-title">🌈 Ray Types</div>
+
+    <div class="ray-item">
+      <div class="ray-color-indicator" style="background:#ff3333; color:#ff3333;"></div>
+      <div class="ray-details">
+        <div class="ray-name">Incident Ray</div>
+        <div class="ray-description">Incoming light from air (n₁ = 1.0)</div>
+      </div>
+    </div>
+
+    <div class="ray-item">
+      <div class="ray-color-indicator" style="background:#ff8800; color:#ff8800;"></div>
+      <div class="ray-details">
+        <div class="ray-name">Refracted Ray</div>
+        <div class="ray-description">Light bending inside glass medium</div>
+      </div>
+    </div>
+
+    <div class="ray-item">
+      <div class="ray-color-indicator" style="background:#ffff00; color:#ffff00;"></div>
+      <div class="ray-details">
+        <div class="ray-name">Transmitted Ray</div>
+        <div class="ray-description">Light exiting back into air</div>
+      </div>
+    </div>
+
+    <div class="ray-item">
+      <div class="ray-color-indicator" style="background:#00ff66; color:#00ff66;"></div>
+      <div class="ray-details">
+        <div class="ray-name">Normal Vectors</div>
+        <div class="ray-description">Perpendicular to surfaces (⊥)</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.right-column -->
+
+<canvas id="canvas"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1500);
+
+class Vec3 {
+  constructor(x=0,y=0,z=0){ this.x=x; this.y=y; this.z=z; }
+  add(v){ return new Vec3(this.x+v.x,this.y+v.y,this.z+v.z); }
+  sub(v){ return new Vec3(this.x-v.x,this.y-v.y,this.z-v.z); }
+  mult(s){ return new Vec3(this.x*s,this.y*s,this.z*s); }
+  dot(v){ return this.x*v.x+this.y*v.y+this.z*v.z; }
+  length(){ return Math.sqrt(this.dot(this)); }
+  normalize(){ const l=this.length(); return l===0?new Vec3(0,0,0):this.mult(1/l); }
+  toThree(){ return new THREE.Vector3(this.x,this.y,this.z); }
+}
+
+function snellRefract(I,N,n1,n2){
+  I=I.normalize(); N=N.normalize();
+  let cosI=I.dot(N), eta=n1/n2;
+  if(cosI>0){ N=N.mult(-1); cosI=I.dot(N); }
+  cosI=-cosI;
+  const sinT2=eta*eta*(1-cosI*cosI);
+  if(sinT2>1) return null;
+  const cosT=Math.sqrt(1-sinT2);
+  return I.mult(eta).add(N.mult(eta*cosI-cosT)).normalize();
+}
+
+const canvas=document.getElementById("canvas");
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setClearColor(0x000000,0);
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
+camera.position.set(8,6,8);
+camera.lookAt(0,0,0);
+
+let isDragging=false, previousMouse={x:0,y:0};
+let cameraRotation={theta:Math.PI/4,phi:Math.PI/6}, cameraDistance=12;
+
+canvas.addEventListener('mousedown',(e)=>{ isDragging=true; previousMouse={x:e.clientX,y:e.clientY}; });
+canvas.addEventListener('mousemove',(e)=>{
+  if(!isDragging) return;
+  const dx=(e.clientX-previousMouse.x)*0.01;
+  const dy=(e.clientY-previousMouse.y)*0.01;
+  cameraRotation.theta-=dx;
+  cameraRotation.phi-=dy;
+  cameraRotation.phi=Math.max(0.1,Math.min(Math.PI-0.1,cameraRotation.phi));
+  updateCamera();
+  previousMouse={x:e.clientX,y:e.clientY};
+});
+canvas.addEventListener('mouseup',()=>isDragging=false);
+canvas.addEventListener('mouseleave',()=>isDragging=false);
+canvas.addEventListener('contextmenu',(e)=>e.preventDefault());
+canvas.addEventListener('wheel',(e)=>{
+  e.preventDefault();
+  cameraDistance=Math.max(5,Math.min(20,cameraDistance+e.deltaY*0.01));
+  updateCamera();
+});
+
+function updateCamera(){
+  camera.position.x=cameraDistance*Math.sin(cameraRotation.phi)*Math.cos(cameraRotation.theta);
+  camera.position.y=cameraDistance*Math.cos(cameraRotation.phi);
+  camera.position.z=cameraDistance*Math.sin(cameraRotation.phi)*Math.sin(cameraRotation.theta);
+  camera.lookAt(0,0,0);
+}
+
+scene.add(new THREE.AmbientLight(0xffffff,0.5));
+const l1=new THREE.DirectionalLight(0x00f5ff,1); l1.position.set(10,10,10); scene.add(l1);
+const l2=new THREE.PointLight(0x0066ff,0.5); l2.position.set(-10,5,-10); scene.add(l2);
+
+const size=4, half=size/2;
+const cube=new THREE.Mesh(
+  new THREE.BoxGeometry(size,size,size),
+  new THREE.MeshPhongMaterial({color:0x44aaff, transparent:true, opacity:0.18, shininess:120, specular:0x00f5ff, side:THREE.DoubleSide})
+);
+cube.position.y=half; // sit on grid: bottom at y=0, top at y=size
+scene.add(cube);
+cube.add(new THREE.LineSegments(new THREE.EdgesGeometry(cube.geometry),new THREE.LineBasicMaterial({color:0x00f5ff,linewidth:2})));
+
+function arrow(from,to,color){
+  const d=to.sub(from),len=d.length();
+  const a=new THREE.ArrowHelper(d.normalize().toThree(),from.toThree(),len,color,0.25,0.12);
+  scene.add(a); return a;
+}
+
+let rayObjects=[];
+
+function updateScene(){
+  rayObjects.forEach(o=>scene.remove(o)); rayObjects=[];
+  const nAir=1.0, nGlass=parseFloat(document.getElementById('n-slider').value);
+  const theta=parseFloat(document.getElementById('angle-slider').value)*Math.PI/180;
+  const incidentX=parseFloat(document.getElementById('incident-x-slider').value);
+  const incidentY=parseFloat(document.getElementById('incident-y-slider').value);
+  const entryPoint=new Vec3(0,size,0);   // top face of cube (y = size = 4)
+  const startPoint=new Vec3(incidentX,incidentY+size,0);
+  const incidentDir=new Vec3(Math.sin(theta),-Math.cos(theta),0).normalize();
+  const entryNormal=new Vec3(0,1,0);
+  rayObjects.push(arrow(startPoint,entryPoint,0xff3333));
+  rayObjects.push(arrow(entryPoint.add(entryNormal.mult(-3)),entryPoint.add(entryNormal.mult(4)),0x00ff66));
+  const refracted=snellRefract(incidentDir,entryNormal,nAir,nGlass);
+  if(refracted){
+    const tExit=(0-entryPoint.y)/refracted.y;  // bottom face y=0
+    const exitPoint=entryPoint.add(refracted.mult(tExit));
+    rayObjects.push(arrow(entryPoint,exitPoint,0xff8800));
+    let exitNormal=new Vec3(0,-1,0);
+    if(refracted.dot(exitNormal)>0) exitNormal=exitNormal.mult(-1);
+    const exitRay=snellRefract(refracted,exitNormal,nGlass,nAir);
+    if(exitRay) rayObjects.push(arrow(exitPoint,exitPoint.add(exitRay.mult(5)),0xffff00));
+    const thetaI=theta*180/Math.PI;
+    const cosThetaT=Math.abs(refracted.dot(entryNormal));
+    const thetaT=Math.acos(cosThetaT)*180/Math.PI;
+    const thetaC=Math.asin(nAir/nGlass)*180/Math.PI;
+    document.getElementById('stat-theta-i').textContent=thetaI.toFixed(1)+'°';
+    document.getElementById('stat-theta-t').textContent=thetaT.toFixed(1)+'°';
+    document.getElementById('stat-theta-c').textContent=thetaC.toFixed(1)+'°';
+  }
+}
+
+const grid=new THREE.GridHelper(20,40,0x00aaff,0x1a2340);
+grid.material.opacity=0.3; grid.material.transparent=true; scene.add(grid);
+
+// Medium controls
+document.getElementById('n-slider').addEventListener('input',(e)=>{ document.getElementById('n-display').textContent=parseFloat(e.target.value).toFixed(2); });
+document.getElementById('update-btn').addEventListener('click', updateScene);
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  document.getElementById('angle-slider').value=30; document.getElementById('angle-display').textContent='30°';
+  document.getElementById('incident-x-slider').value=-5; document.getElementById('incident-x-display').textContent='-5.0';
+  document.getElementById('incident-y-slider').value=3; document.getElementById('incident-y-display').textContent='3.0';
+  document.getElementById('n-slider').value=1.52; document.getElementById('n-display').textContent='1.52';
+  cameraRotation={theta:Math.PI/4,phi:Math.PI/6}; cameraDistance=12;
+  updateCamera(); updateScene();
+});
+
+// Incident ray controls
+document.getElementById('angle-slider').addEventListener('input',(e)=>{ document.getElementById('angle-display').textContent=e.target.value+'°'; });
+document.getElementById('incident-x-slider').addEventListener('input',(e)=>{ document.getElementById('incident-x-display').textContent=parseFloat(e.target.value).toFixed(1); });
+document.getElementById('incident-y-slider').addEventListener('input',(e)=>{ document.getElementById('incident-y-display').textContent=parseFloat(e.target.value).toFixed(1); });
+document.getElementById('ray-update-btn').addEventListener('click', updateScene);
+document.getElementById('ray-reset-btn').addEventListener('click',()=>{
+  document.getElementById('angle-slider').value=30; document.getElementById('angle-display').textContent='30°';
+  document.getElementById('incident-x-slider').value=-5; document.getElementById('incident-x-display').textContent='-5.0';
+  document.getElementById('incident-y-slider').value=3; document.getElementById('incident-y-display').textContent='3.0';
+  updateScene();
+});
+
+function animate(){ requestAnimationFrame(animate); renderer.render(scene,camera); }
+updateScene(); animate();
+
+window.addEventListener("resize",()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+</script>
+
+</body>
+</html>

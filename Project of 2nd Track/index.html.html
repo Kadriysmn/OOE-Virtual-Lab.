@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIR Lab — Chemical Lock</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tq:#00bfa5; --tq2:#00897b; --tqlt:#e0f7f4; --tqmd:#80cbc4;
+  --bl:#1565c0;  --bllt:#e3f2fd; --blmd:#90caf9;
+  --navy:#0d2137; --txt:#1a2e40; --muted:#546e7a;
+  --border:#cfd8dc; --white:#fff; --bg:#f5f9fb;
+  --green:#2e7d32; --red:#c62828; --gold:#f57f17;
+  --sh:0 2px 10px rgba(13,33,55,.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:linear-gradient(150deg,#eaf7f5,#e8f4fd 50%,#f0f8ff)}
+.sp-chip{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--tq);background:var(--tqlt);border:1px solid var(--tqmd);
+  border-radius:20px;padding:4px 14px;margin-bottom:12px}
+.sp-h1{font-size:clamp(2rem,6vw,4rem);font-weight:700;color:var(--navy);
+  text-align:center;line-height:1.1;margin-bottom:6px}
+.sp-h1 em{color:var(--tq);font-style:normal}
+.sp-sub{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);
+  margin-bottom:44px;letter-spacing:1px}
+.sp-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.sp-card{width:175px;background:var(--white);border:2px solid var(--border);
+  border-radius:16px;padding:26px 18px 20px;text-align:center;
+  cursor:pointer;transition:all .2s;box-shadow:var(--sh)}
+.sp-card:hover{border-color:var(--tq);transform:translateY(-4px);
+  box-shadow:0 10px 30px rgba(0,191,165,.18)}
+.sp-ico{font-size:2.2rem;margin-bottom:10px;display:block}
+.sp-ct{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:4px}
+.sp-cd{font-size:12px;color:var(--muted);line-height:1.4}
+
+/* HEADER */
+#app{display:none;height:100vh}
+.hdr{height:50px;background:var(--white);border-bottom:1px solid var(--border);
+  box-shadow:var(--sh);display:flex;align-items:center;padding:0 16px;gap:10px;
+  position:fixed;top:0;left:0;right:0;z-index:100}
+.hdr-logo{display:flex;align-items:center;gap:8px;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:13px;color:var(--navy)}
+.hd{width:10px;height:10px;border-radius:50%;background:var(--tq)}
+.chip{background:var(--tqlt);border:1px solid var(--tqmd);border-radius:6px;
+  padding:2px 9px;font-size:11px;font-weight:600;color:var(--tq2);font-family:'Space Mono',monospace}
+.chip.bl{background:var(--bllt);border-color:var(--blmd);color:var(--bl)}
+.hdr-r{margin-left:auto;display:flex;gap:8px}
+.hbtn{padding:5px 13px;border-radius:7px;border:1.5px solid var(--border);
+  background:var(--white);color:var(--muted);font-size:12px;font-weight:500;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
+.hbtn:hover{border-color:var(--tq);color:var(--tq)}
+
+/* LAYOUT */
+.body{display:flex;height:calc(100vh - 50px);margin-top:50px}
+.sb{width:295px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);
+  overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+/* cards */
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;
+  padding:12px 13px;box-shadow:0 1px 4px rgba(13,33,55,.05)}
+.card.tq{background:var(--tqlt);border-color:rgba(0,191,165,.3)}
+.card-ttl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--tq2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card-ttl::after{content:'';flex:1;height:1px;background:rgba(0,191,165,.25)}
+
+/* slider */
+.sl-hd{display:flex;justify-content:space-between;margin-bottom:6px}
+.sl-lbl{font-size:13px;color:var(--muted);font-weight:500}
+.sl-val{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--tq2)}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;
+  cursor:pointer;outline:none;
+  background:linear-gradient(to right,var(--tq) var(--pct,63%),#cfd8dc var(--pct,63%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--white);border:3px solid var(--tq);
+  box-shadow:0 1px 6px rgba(0,191,165,.35);cursor:pointer}
+
+/* n2 box */
+.n2box{margin-top:10px;padding:10px 12px;border-radius:9px;
+  background:var(--white);border:1.5px solid var(--blmd)}
+.n2lbl{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.n2val{display:block;font-family:'Space Mono',monospace;font-size:22px;font-weight:700;
+  color:var(--bl);margin:3px 0 2px}
+.n2eq{font-size:11px;color:var(--muted)}
+
+/* tir badge */
+.tirrow{display:flex;align-items:center;gap:8px;margin-top:10px;padding:7px 11px;
+  border-radius:8px;background:var(--bg);border:1.5px solid var(--border);transition:all .25s}
+.tirrow.on{background:var(--tqlt);border-color:rgba(0,191,165,.4)}
+.tirdot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:all .25s}
+.tirrow.on .tirdot{background:var(--tq);box-shadow:0 0 0 3px rgba(0,191,165,.2);animation:pulse 1.2s infinite}
+.tirlbl{font-size:12px;font-weight:500;color:var(--muted);transition:color .25s}
+.tirrow.on .tirlbl{color:var(--tq2);font-weight:600}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* formula */
+.formula{background:#fffde7;border:1.5px solid #f9e278;border-radius:8px;
+  padding:9px 11px;font-family:'Space Mono',monospace;font-size:11px;
+  color:#5d4037;line-height:1.9;text-align:center;margin:8px 0}
+
+/* quiz steps */
+.qstep{border-radius:9px;padding:11px 12px;border:1.5px solid var(--border);
+  background:var(--bg);transition:all .3s}
+.qstep+.qstep{margin-top:8px}
+.qstep.locked{opacity:.3;pointer-events:none}
+.qstep.done{background:#f1fdf7;border-color:rgba(46,125,50,.3)}
+.qttl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+  color:var(--navy);margin-bottom:7px}
+.qn{width:21px;height:21px;border-radius:50%;flex-shrink:0;background:var(--tqlt);
+  border:2px solid var(--tq);display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:var(--tq2);font-family:'Space Mono',monospace}
+.qstep.done .qn{background:#dcedc8;border-color:var(--green);color:var(--green)}
+.qbody{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:8px}
+.qbtn{width:100%;padding:7px;border-radius:7px;border:none;background:var(--tq);
+  color:var(--white);font-size:12px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .18s}
+.qbtn:hover:not(:disabled){background:var(--tq2)}
+.qbtn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.opts{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.opt{padding:7px 10px;border-radius:7px;border:1.5px solid var(--border);
+  background:var(--white);color:var(--txt);font-size:12px;cursor:pointer;
+  text-align:left;transition:all .18s;font-family:'Inter',sans-serif;line-height:1.4}
+.opt:hover{border-color:var(--tq);color:var(--navy)}
+.opt.correct{border-color:var(--green);background:#f1f8e9;color:#1b5e20}
+.opt.wrong{border-color:var(--red);background:#ffebee;color:#7f0000}
+.qdone{font-size:12px;font-weight:600;color:var(--green);margin-top:4px}
+
+/* liquid table */
+.ltbl{display:flex;flex-direction:column;gap:4px}
+.lrow{display:flex;align-items:center;gap:7px;padding:5px 8px;
+  border-radius:7px;border:1.5px solid transparent;transition:all .25s}
+.lrow.best{border-color:var(--tq);background:var(--tqlt)}
+.ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ln{font-size:12px;font-weight:500;flex:1}
+.lnv{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+.ldv{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)}
+
+/* liq result card */
+.lres{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;
+  border-radius:9px;background:var(--white);border:2px solid var(--border);
+  transition:border-color .4s,box-shadow .4s}
+.lsw{width:40px;height:40px;border-radius:8px;flex-shrink:0;transition:all .4s}
+.lnm{font-size:15px;font-weight:700;color:var(--navy);transition:color .4s}
+.lmt{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+.ldlt{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+
+/* GUESS GAME */
+.guess-wrap{display:flex;flex-direction:column;gap:6px}
+.guess-opt{padding:9px 12px;border-radius:8px;border:2px solid var(--border);
+  background:var(--white);color:var(--txt);font-size:13px;font-weight:600;
+  cursor:pointer;text-align:left;transition:all .2s;font-family:'Inter',sans-serif;
+  display:flex;align-items:center;gap:8px}
+.guess-opt:hover:not(:disabled){border-color:var(--tq);background:var(--tqlt);color:var(--navy)}
+.guess-opt:disabled{cursor:not-allowed;opacity:.7}
+.guess-opt.g-correct{border-color:var(--green);background:#f1f8e9;color:#1b5e20}
+.guess-opt.g-wrong{border-color:var(--red);background:#ffebee;color:#7f0000}
+.guess-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.guess-result{margin-top:8px;padding:8px 10px;border-radius:8px;
+  font-size:12px;font-weight:600;text-align:center;display:none}
+.guess-result.show{display:block}
+.guess-result.ok{background:#f1f8e9;color:var(--green);border:1.5px solid var(--green)}
+.guess-result.no{background:#ffebee;color:var(--red);border:1.5px solid var(--red)}
+.guess-retry,.guess-skip{padding:6px;border-radius:7px;border:1.5px solid var(--border);
+  background:var(--white);color:var(--muted);font-size:12px;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .18s}
+.guess-retry:hover{border-color:var(--tq);color:var(--tq)}
+.guess-skip{border-color:var(--border);color:var(--tq2);font-weight:600}
+.guess-skip:hover{border-color:var(--tq2);background:var(--tqlt)}
+.guess-score{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
+  text-align:right;margin-bottom:6px}
+
+/* CANVAS AREA */
+.cva{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+canvas#c2d{position:absolute;inset:0;width:100%;height:100%}
+#c3d-wrap{position:absolute;inset:0;display:none}
+.pfx{position:absolute;inset:0;pointer-events:none;z-index:5}
+.tflash{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 55% at 50% 55%,rgba(0,191,165,.15) 0%,transparent 65%);
+  opacity:0;transition:opacity .18s}
+.tov{position:absolute;top:14px;right:14px;z-index:10;
+  background:var(--white);border:1.5px solid var(--border);border-radius:8px;
+  padding:5px 12px;box-shadow:var(--sh);display:flex;align-items:center;gap:7px;
+  font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);transition:all .25s}
+.tov.on{border-color:var(--tq);color:var(--tq2)}
+.tov-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;transition:all .25s}
+.tov.on .tov-dot{background:var(--tq);box-shadow:0 0 0 3px rgba(0,191,165,.2);animation:pulse 1.2s infinite}
+.drag-hint{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+  background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:8px;
+  padding:5px 14px;font-size:12px;color:var(--muted);white-space:nowrap;
+  box-shadow:var(--sh);pointer-events:none;display:none}
+.mode-toggle{position:absolute;bottom:16px;right:16px;z-index:10;
+  background:var(--white);border:1.5px solid var(--border);border-radius:9px;
+  padding:4px;box-shadow:var(--sh);display:flex;gap:4px}
+.mbt{padding:5px 14px;border-radius:6px;border:none;background:transparent;
+  color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;
+  font-family:'Space Mono',monospace;transition:all .18s}
+.mbt.on{background:var(--tq);color:var(--white)}
+.mbt:hover:not(.on){color:var(--tq)}
+#win{position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  background:var(--white);border:2px solid var(--green);border-radius:16px;
+  padding:28px 40px;text-align:center;z-index:20;pointer-events:none;
+  box-shadow:0 8px 40px rgba(46,125,50,.2);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+#win.show{transform:translate(-50%,-50%) scale(1)}
+#win .ico{font-size:2.6rem;display:block;margin-bottom:8px}
+#win .wt{font-size:20px;font-weight:700;color:var(--green)}
+#win .ws{font-size:13px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-chip">Mission 2 · Chemical Lock</div>
+  <div class="sp-h1">Total Internal<br><em>Reflection</em></div>
+  <div class="sp-sub">Glass half-cylinder · n₁ = 1.60</div>
+  <div class="sp-row">
+    <div class="sp-card" onclick="boot('2d')">
+      <span class="sp-ico">🔬</span>
+      <div class="sp-ct">2D Mode</div>
+      <div class="sp-cd">Animated cross-section ray tracing</div>
+    </div>
+    <div class="sp-card" onclick="boot('3d')">
+      <span class="sp-ico">🧊</span>
+      <div class="sp-ct">3D Mode</div>
+      <div class="sp-cd">Drag to rotate the glass half-cylinder</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-logo"><div class="hd"></div>REFRACTOMETER LAB</div>
+    <div class="chip" id="mbadge">2D</div>
+    <div class="chip bl">n₁ = 1.60</div>
+    <div class="hdr-r">
+      <button class="hbtn" id="sfxbtn" onclick="toggleSfx()">🔊 SFX</button>
+      <button class="hbtn" onclick="goMenu()">← Menu</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="sb">
+
+      <!-- ANGLE CONTROL -->
+      <div class="card tq">
+        <div class="card-ttl">Incident Angle</div>
+        <div class="sl-hd">
+          <span class="sl-lbl">Incident angle  i  (find TIR!)</span>
+          <span class="sl-val" id="av">56°</span>
+        </div>
+        <input type="range" id="asl" min="1" max="89" value="56" oninput="onAngle(+this.value)">
+        <div class="n2box">
+          <div class="n2lbl">Refractive Index n₂</div>
+          <span class="n2val" id="n2v">1.3252</span>
+          <div class="n2eq" id="n2eq">n₂ = 1.60 × sin(56°)</div>
+        </div>
+        <div class="tirrow" id="tirow">
+          <div class="tirdot"></div>
+          <span class="tirlbl" id="tirlbl">No TIR — light refracts</span>
+        </div>
+      </div>
+
+      <!-- QUIZ -->
+      <div class="card">
+        <div class="card-ttl">Mission Briefing</div>
+
+        <div class="qstep" id="q1">
+          <div class="qttl"><span class="qn">1</span>Snell's Law at critical angle</div>
+          <div class="formula">n₁ · sin(iₒ) = n₂ · sin(90°)<br>sin(90°) = 1<br>∴ n₂ = 1.60 × sin(iₒ)</div>
+          <div class="qbody">At i₂ = 90° the refracted ray grazes the surface. Since sin(90°)=1, Snell's law simplifies directly.</div>
+          <button class="qbtn" onclick="qu(2)">Understood — next →</button>
+        </div>
+
+        <div class="qstep locked" id="q2">
+          <div class="qttl"><span class="qn">2</span>Why TIR only high → low index?</div>
+          <div class="opts">
+            <button class="opt" onclick="q2a(this,false)">Dense media always fully reflect light</button>
+            <button class="opt" onclick="q2a(this,true)">Snell's law would need sin(i₂)&gt;1 — impossible — so no refracted ray exists</button>
+            <button class="opt" onclick="q2a(this,false)">Lower-index media absorb the beam</button>
+          </div>
+        </div>
+
+        <div class="qstep locked" id="q3">
+          <div class="qttl"><span class="qn">3</span>Calculate n₂</div>
+          <div class="formula" id="q3f">← Set the slider first</div>
+          <button class="qbtn" id="q3btn" onclick="qu('guess')" disabled>Calculate → Guess it! 🎮</button>
+        </div>
+
+        <div class="qstep locked" id="qguess">
+          <div class="qttl"><span class="qn">🎮</span>Guess the liquid</div>
+          <div class="qbody" style="margin-bottom:6px">n₂ computed — which liquid matches?</div>
+          <div class="guess-score" id="gscore">Score: 0 / 0</div>
+          <div class="guess-wrap" id="guess-opts"></div>
+          <div class="guess-result" id="gresult"></div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="guess-retry" id="gretry" onclick="newGuess()" style="display:none;flex:1">↺ Try another angle</button>
+            <button class="guess-skip" id="gskip" onclick="skipToIdentify()" style="display:none;flex:1">🔬 Identify manually →</button>
+          </div>
+        </div>
+
+        <div class="qstep locked" id="q4">
+          <div class="qttl"><span class="qn">4</span>Identify the liquid</div>
+          <div class="ltbl" id="ltbl"></div>
+          <div class="lres" id="lres">
+            <div class="lsw" id="lsw"></div>
+            <div>
+              <div class="lnm" id="lnm">—</div>
+              <div class="lmt" id="lmt">n = —</div>
+              <div class="ldlt" id="ldlt"></div>
+            </div>
+          </div>
+          <button class="qbtn" style="margin-top:8px" onclick="crackLock()">🔓 Crack the Lock!</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CANVAS -->
+    <div class="cva" id="cva">
+      <canvas id="c2d"></canvas>
+      <div id="c3d-wrap"></div>
+      <canvas class="pfx" id="pfx"></canvas>
+      <div class="tflash" id="tflash"></div>
+      <div class="tov" id="tov"><div class="tov-dot"></div><span id="tovtxt">NO TIR</span></div>
+      <div class="drag-hint" id="dhint">🖱 Drag to rotate</div>
+      <div class="mode-toggle">
+        <button class="mbt on" id="mb2d" onclick="setMode('2d')">2D</button>
+        <button class="mbt"    id="mb3d" onclick="setMode('3d')">3D</button>
+      </div>
+      <div id="win">
+        <span class="ico">🔓</span>
+        <div class="wt">Lock Cracked!</div>
+        <div class="ws" id="wins">Liquid identified.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+const N1 = 1.60;
+const LIQUIDS = [
+  { name:'Water',    n:1.33, hex:'#1e88e5', rgb:[30,136,229]  },
+  { name:'Ethanol',  n:1.36, hex:'#fb8c00', rgb:[251,140,0]   },
+  { name:'Glycerin', n:1.47, hex:'#fdd835', rgb:[253,216,53]  },
+  { name:'Benzene',  n:1.50, hex:'#43a047', rgb:[67,160,71]   },
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let mode='2d', angle=56, tir=false, sfxOn=true;
+let qStage=1, q3Ready=false, q4Active=false;
+let bestLiq=null;
+let photT=0, parts=[];
+let raf2=null, raf3=null;
+let guessScore=0, guessTotal=0, guessActive=false, guessAnswer=null;
+
+// ══════════════════════════════════════════════════════
+// AUDIO
+// ══════════════════════════════════════════════════════
+let AC;
+function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,t='sine',v=0.07){
+  if(!sfxOn)return;
+  try{const a=getAC(),o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);o.type=t;o.frequency.value=f;
+    g.gain.setValueAtTime(v,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+d);
+    o.start();o.stop(a.currentTime+d);}catch(e){}
+}
+function toggleSfx(){sfxOn=!sfxOn;document.getElementById('sfxbtn').textContent=sfxOn?'🔊 SFX':'🔇 SFX';}
+
+// ══════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════
+function boot(m){
+  document.getElementById('splash').style.display='none';
+  document.getElementById('app').style.display='block';
+  initPfx();
+  onAngle(56,true);
+  setMode(m,true);
+}
+function goMenu(){
+  stop2d();kill3d();
+  document.getElementById('app').style.display='none';
+  document.getElementById('splash').style.display='flex';
+  qStage=1;q3Ready=false;q4Active=false;bestLiq=null;
+  guessScore=0;guessTotal=0;guessActive=false;
+  ['q1','q2','q3','qguess','q4'].forEach(id=>{
+    const e=document.getElementById(id);
+    if(e)e.classList.remove('done','locked');
+  });
+  ['q2','q3','qguess','q4'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('locked');});
+  document.getElementById('win').classList.remove('show');
+}
+function setMode(m,init){
+  if(m===mode&&!init)return;
+  stop2d();kill3d();
+  mode=m;
+  document.getElementById('mbadge').textContent=m.toUpperCase();
+  document.getElementById('mb2d').classList.toggle('on',m==='2d');
+  document.getElementById('mb3d').classList.toggle('on',m==='3d');
+  document.getElementById('c2d').style.display=m==='2d'?'block':'none';
+  document.getElementById('c3d-wrap').style.display=m==='3d'?'block':'none';
+  document.getElementById('dhint').style.display=m==='3d'?'block':'none';
+  if(m==='2d') start2d();
+  else requestAnimationFrame(()=>requestAnimationFrame(start3d));
+}
+
+// ══════════════════════════════════════════════════════
+// PHYSICS
+// ══════════════════════════════════════════════════════
+// Hidden target liquid: Water n=1.33, ic=56.23°
+// User slides until they SEE TIR start → that angle is iₒ → compute n₂
+const TARGET={n:1.33,ic:Math.asin(1.33/1.60)*180/Math.PI};
+
+function onAngle(v,silent){
+  angle=+v;
+  const sl=document.getElementById('asl');
+  sl.value=angle;
+  sl.style.setProperty('--pct',(angle/89*100)+'%');
+  document.getElementById('av').textContent=angle+'°';
+  const rad=angle*Math.PI/180;
+  const n2=N1*Math.sin(rad);
+  document.getElementById('n2v').textContent=n2.toFixed(4);
+  document.getElementById('n2eq').textContent=`n₂ = 1.60 × sin(${angle}°) = ${n2.toFixed(4)}`;
+  // TIR happens at the REAL critical angle of the target liquid
+  const wasTir=tir;
+  tir=(angle>=TARGET.ic);
+  setTirUI(tir);
+  if(tir&&!wasTir&&!silent){beep(880,.06,'square',.05);spawnTirP();}
+  if(q3Ready)updateQ3(n2);
+  if(q4Active){updateTable(n2);computeBest(n2);updateLiqCard(bestLiq,n2);}
+  if(mode==='3d')rebuild3Rays();
+}
+function setTirUI(on){
+  document.getElementById('tirow').classList.toggle('on',on);
+  document.getElementById('tirlbl').textContent=on
+    ?`⚡ TIR detected at i=${angle}°!`
+    :`No TIR — light refracts (i=${angle}°)`;
+  document.getElementById('tov').classList.toggle('on',on);
+  document.getElementById('tovtxt').textContent=on?'TIR ACTIVE':'NO TIR';
+  document.getElementById('tflash').style.opacity=on?'1':'0';
+}
+
+// ══════════════════════════════════════════════════════
+// QUIZ
+// ══════════════════════════════════════════════════════
+function qu(n){
+  if(n===2){
+    document.getElementById('q1').classList.add('done');
+    const b=document.getElementById('q1').querySelector('.qbtn');
+    b.textContent='✓ Done';b.disabled=true;
+    document.getElementById('q2').classList.remove('locked');
+    qStage=2;beep(440,.18,'sine',.07);
+  } else if(n==='guess'){
+    document.getElementById('q3').classList.add('done');
+    document.getElementById('qguess').classList.remove('locked');
+    qStage='guess';
+    renderGuess();
+    beep(520,.18,'sine',.07);
+  } else if(n===4){
+    document.getElementById('qguess').classList.add('done');
+    document.getElementById('q4').classList.remove('locked');
+    q4Active=true;qStage=4;
+    const n2=N1*Math.sin(angle*Math.PI/180);
+    updateTable(n2);computeBest(n2);updateLiqCard(bestLiq,n2);
+    beep(660,.22,'sine',.08);
+  }
+}
+function q2a(btn,correct){
+  document.querySelectorAll('#q2 .opt').forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add('correct');
+    setTimeout(()=>{
+      document.getElementById('q2').classList.add('done');
+      document.getElementById('q2').insertAdjacentHTML('beforeend','<div class="qdone">✓ Correct!</div>');
+      document.getElementById('q3').classList.remove('locked');
+      q3Ready=true;qStage=3;
+      updateQ3(N1*Math.sin(angle*Math.PI/180));
+      beep(550,.22,'sine',.08);
+    },450);
+  } else {
+    btn.classList.add('wrong');
+    setTimeout(()=>{
+      document.querySelectorAll('#q2 .opt').forEach(b=>{b.disabled=false;b.classList.remove('wrong','correct');});
+    },900);
+    beep(220,.28,'sawtooth',.06);
+  }
+}
+function updateQ3(n2){
+  const rad=angle*Math.PI/180;
+  document.getElementById('q3f').innerHTML=
+    `n₂ = 1.60 × sin(${angle}°)<br>= 1.60 × ${Math.sin(rad).toFixed(4)}<br><strong>= ${n2.toFixed(4)}</strong>`;
+  document.getElementById('q3btn').disabled=false;
+}
+function updateTable(n2){
+  const diffs=LIQUIDS.map(l=>Math.abs(l.n-n2));
+  const mn=Math.min(...diffs);
+  document.getElementById('ltbl').innerHTML=LIQUIDS.map((l,i)=>`
+    <div class="lrow ${diffs[i]===mn?'best':''}">
+      <div class="ldot" style="background:${l.hex}"></div>
+      <span class="ln">${l.name}</span>
+      <span class="lnv">n=${l.n.toFixed(2)}</span>
+      <span class="ldv">Δ${diffs[i].toFixed(3)}</span>
+    </div>`).join('');
+}
+function computeBest(n2){
+  let best=LIQUIDS[0],bd=99;
+  LIQUIDS.forEach(l=>{const d=Math.abs(l.n-n2);if(d<bd){bd=d;best=l;}});
+  bestLiq=best;
+}
+function updateLiqCard(liq,n2){
+  if(!liq||!q4Active)return;
+  document.getElementById('lsw').style.background=liq.hex;
+  document.getElementById('lsw').style.boxShadow=`0 4px 14px rgba(${liq.rgb.join(',')},0.4)`;
+  document.getElementById('lnm').textContent=liq.name;
+  document.getElementById('lnm').style.color=liq.hex;
+  document.getElementById('lmt').textContent=`n = ${liq.n}`;
+  document.getElementById('ldlt').textContent=`Δn = ${Math.abs(liq.n-n2).toFixed(4)}`;
+  document.getElementById('lres').style.borderColor=liq.hex;
+  if(mode==='3d')updateLiq3();
+}
+function crackLock(){
+  const n2=N1*Math.sin(angle*Math.PI/180);
+  computeBest(n2);updateLiqCard(bestLiq,n2);
+  document.getElementById('q4').classList.add('done');
+  document.getElementById('wins').textContent=`The reagent is ${bestLiq.name} (n = ${bestLiq.n})`;
+  document.getElementById('win').classList.add('show');
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25,'sine',.1),i*130));
+  spawnBurst();
+  setTimeout(()=>document.getElementById('win').classList.remove('show'),3200);
+}
+
+// ══════════════════════════════════════════════════════
+// GUESS GAME
+// ══════════════════════════════════════════════════════
+function renderGuess(){
+  const n2=N1*Math.sin(angle*Math.PI/180);
+  let best=LIQUIDS[0],bd=99;
+  LIQUIDS.forEach(l=>{const d=Math.abs(l.n-n2);if(d<bd){bd=d;best=l;}});
+  guessAnswer=best;
+  guessActive=true;
+  const shuffled=[...LIQUIDS].sort(()=>Math.random()-.5);
+  document.getElementById('guess-opts').innerHTML=shuffled.map(l=>`
+    <button class="guess-opt" onclick="checkGuess(this,'${l.name}')">
+      <div class="guess-dot" style="background:${l.hex}"></div>
+      <span>${l.name}</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--muted);font-weight:400">n = ${l.n}</span>
+    </button>`).join('');
+  document.getElementById('gresult').className='guess-result';
+  document.getElementById('gresult').textContent='';
+  document.getElementById('gretry').style.display='none';
+  document.getElementById('gskip').style.display='none';
+  updateGScore();
+}
+function newGuess(){
+  // Pick random angle, stay in guess step
+  const angles=[22,28,32,38,42,47,52,58,63,68,72,77];
+  const pick=angles[Math.floor(Math.random()*angles.length)];
+  onAngle(pick);
+  renderGuess();
+}
+function checkGuess(btn,name){
+  if(!guessActive)return;
+  guessActive=false;guessTotal++;
+  document.querySelectorAll('.guess-opt').forEach(b=>b.disabled=true);
+  const correct=name===guessAnswer.name;
+  if(correct){
+    btn.classList.add('g-correct');
+    guessScore++;
+    const r=document.getElementById('gresult');
+    r.textContent=`✓ Correct! ${guessAnswer.name} — n = ${guessAnswer.n}`;
+    r.className='guess-result show ok';
+    beep(660,.25,'sine',.09);spawnBurst();
+    // After correct guess → unlock q4 with a small delay
+    setTimeout(()=>qu(4),700);
+  } else {
+    btn.classList.add('g-wrong');
+    // Highlight correct answer
+    document.querySelectorAll('.guess-opt').forEach(b=>{
+      const nm=b.querySelector('span:first-of-type');
+      if(nm&&nm.textContent.trim()===guessAnswer.name)b.classList.add('g-correct');
+    });
+    const r=document.getElementById('gresult');
+    r.textContent=`✗ Not quite! Try again or identify manually.`;
+    r.className='guess-result show no';
+    beep(220,.28,'sawtooth',.06);
+    document.getElementById('gretry').style.display='block';
+    document.getElementById('gskip').style.display='block';
+  }
+  updateGScore();
+}
+
+function skipToIdentify(){
+  document.getElementById('gskip').style.display='none';
+  document.getElementById('gretry').style.display='none';
+  document.getElementById('qguess').classList.add('done');
+  qu(4);
+}
+function updateGScore(){
+  document.getElementById('gscore').textContent=`Score: ${guessScore} / ${guessTotal}`;
+}
+
+// ══════════════════════════════════════════════════════
+// 2D CANVAS
+// ══════════════════════════════════════════════════════
+let ctx2,cw,ch;
+function start2d(){
+  const ca=document.getElementById('c2d');
+  ctx2=ca.getContext('2d');
+  rsz2();
+  window.addEventListener('resize',rsz2);
+  loop2d();
+}
+function stop2d(){
+  if(raf2){cancelAnimationFrame(raf2);raf2=null;}
+  window.removeEventListener('resize',rsz2);
+}
+function rsz2(){
+  const a=document.getElementById('cva');
+  const ca=document.getElementById('c2d');
+  ca.width=cw=a.clientWidth;ca.height=ch=a.clientHeight;
+}
+function loop2d(){
+  if(mode!=='2d')return;
+  photT+=0.017;draw2d();
+  raf2=requestAnimationFrame(loop2d);
+}
+function draw2d(){
+  if(!ctx2)return;
+  ctx2.clearRect(0,0,cw,ch);
+  const CX=cw/2,CY=ch*.54,R=Math.min(cw,ch)*.28;
+  const rad=angle*Math.PI/180,pt=photT%1;
+  const lc=bestLiq?bestLiq.rgb:[30,136,229];
+  const lhex=bestLiq?bestLiq.hex:'#1e88e5';
+
+  // grid
+  ctx2.save();ctx2.strokeStyle='rgba(13,33,55,.04)';ctx2.lineWidth=1;
+  for(let x=0;x<cw;x+=30){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,ch);ctx2.stroke();}
+  for(let y=0;y<ch;y+=30){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(cw,y);ctx2.stroke();}
+  ctx2.restore();
+
+  // glass half-cylinder fill
+  ctx2.save();
+  ctx2.beginPath();ctx2.arc(CX,CY,R,Math.PI,0,false);
+  ctx2.lineTo(CX+R,CY);ctx2.lineTo(CX-R,CY);ctx2.closePath();
+  const gg=ctx2.createRadialGradient(CX-R*.15,CY-R*.2,R*.05,CX,CY,R);
+  gg.addColorStop(0,'rgba(21,101,192,.13)');
+  gg.addColorStop(.5,'rgba(0,191,165,.07)');
+  gg.addColorStop(1,'rgba(13,33,55,.04)');
+  ctx2.fillStyle=gg;ctx2.fill();
+  ctx2.strokeStyle='#1565c0';ctx2.lineWidth=2.5;
+  ctx2.shadowColor='rgba(21,101,192,.3)';ctx2.shadowBlur=8;ctx2.stroke();
+  ctx2.restore();
+
+  // liquid layer
+  const lH=28;
+  ctx2.save();
+  ctx2.beginPath();ctx2.rect(CX-R,CY-lH,R*2,lH);ctx2.clip();
+  const lg=ctx2.createLinearGradient(0,CY-lH,0,CY);
+  lg.addColorStop(0,`rgba(${lc[0]},${lc[1]},${lc[2]},.55)`);
+  lg.addColorStop(1,`rgba(${lc[0]},${lc[1]},${lc[2]},.15)`);
+  ctx2.fillStyle=lg;ctx2.fillRect(CX-R,CY-lH,R*2,lH);
+  ctx2.restore();
+  ctx2.save();
+  ctx2.beginPath();ctx2.rect(CX-R,CY-2.5,R*2,3);
+  ctx2.fillStyle=lhex;ctx2.shadowColor=lhex;ctx2.shadowBlur=8;ctx2.fill();ctx2.restore();
+  ctx2.save();
+  ctx2.beginPath();ctx2.moveTo(CX-R,CY);ctx2.lineTo(CX+R,CY);
+  ctx2.strokeStyle='rgba(21,101,192,.4)';ctx2.lineWidth=1.2;ctx2.stroke();ctx2.restore();
+  ctx2.save();ctx2.font='500 12px Inter,sans-serif';
+  ctx2.fillStyle=lhex;ctx2.textAlign='center';ctx2.textBaseline='middle';
+  ctx2.shadowColor=lhex;ctx2.shadowBlur=6;
+  ctx2.fillText(q4Active&&bestLiq?`${bestLiq.name}  (n=${bestLiq.n})`:'Unknown liquid  n₂=?',CX,CY-lH/2);
+  ctx2.restore();
+
+  // normal dashed
+  ctx2.save();ctx2.setLineDash([5,6]);
+  ctx2.strokeStyle='rgba(13,33,55,.15)';ctx2.lineWidth=1;
+  ctx2.beginPath();ctx2.moveTo(CX,CY-R*.9);ctx2.lineTo(CX,CY+R*.9);ctx2.stroke();
+  ctx2.restore();
+
+  // RAYS
+  const iL=R*.88;
+  const ox=CX-Math.sin(rad)*iL,oy=CY+Math.cos(rad)*iL;
+  const pxi=CX-Math.sin(rad)*iL*(1-pt),pyi=CY+Math.cos(rad)*iL*(1-pt);
+  b2(ox,oy,CX,CY,'#1565c0',.9,2.5);
+  b2(ox,oy,CX,CY,'rgba(21,101,192,.1)',.7,11);
+  p2(pxi,pyi,'#1e88e5');
+
+  // incident label
+  lbl2(`i=${angle}°`,ox+(CX-ox)*.44+Math.cos(rad)*16,oy+(CY-oy)*.44-Math.sin(rad)*10,
+    'rgba(21,101,192,.9)','500 11px Inter,sans-serif');
+
+  const fl=.55+.45*Math.sin(photT*6);
+  // Unknown liquid until step 4
+  const rlc=q4Active&&bestLiq?bestLiq.rgb:[120,144,156];
+  const rlhex=q4Active&&bestLiq?bestLiq.hex:'#78909c';
+
+  if(tir){
+    // TIR: reflected ray only
+    const rx=CX+Math.sin(rad)*iL,ry=CY+Math.cos(rad)*iL;
+    b2(CX,CY,rx,ry,`rgba(0,191,165,${fl})`,fl,3);
+    b2(CX,CY,rx,ry,'rgba(0,191,165,.08)',.7,14);
+    p2(CX+Math.sin(rad)*iL*pt,CY+Math.cos(rad)*iL*pt,'#00bfa5');
+    lbl2(`reflected  r=${angle}°`,
+      CX+(rx-CX)*.45-Math.cos(rad)*16,CY+(ry-CY)*.45+Math.sin(rad)*18+14,
+      `rgba(0,143,130,${fl})`,'500 11px Inter,sans-serif');
+    lbl2(`⚡ TIR  —  iₒ≈${angle}°`,CX,CY+34,`rgba(0,143,130,${fl})`,'bold 11px Space Mono,monospace');
+  } else if(Math.abs(angle-TARGET.ic)<1.2){
+    // AT critical angle: grazing ray (i₂=90°)
+    const gL=R*.82;
+    b2(CX,CY,CX+gL,CY,rlhex,.9,2.5);
+    b2(CX,CY,CX+gL,CY,`rgba(${rlc[0]},${rlc[1]},${rlc[2]},.1)`,.6,13);
+    p2(CX+gL*pt,CY,rlhex);
+    lbl2('refracted  i₂=90°',CX+gL*.52,CY-15,rlhex,'500 11px Inter,sans-serif');
+    b2(CX,CY,CX+Math.sin(rad)*iL*.45,CY+Math.cos(rad)*iL*.45,'rgba(0,191,165,.3)',.35,1.5);
+    lbl2(`iₒ≈${angle}° — critical angle!`,CX,CY+34,'rgba(0,143,130,.85)','bold 11px Space Mono,monospace');
+  } else {
+    // Normal refraction — use TARGET physics
+    const sinI2=N1*Math.sin(rad)/TARGET.n;
+    if(sinI2<=1){
+      const i2=Math.asin(sinI2);
+      const rfx=CX+Math.sin(i2)*R*.72,rfy=CY-Math.cos(i2)*R*.72;
+      b2(CX,CY,rfx,rfy,rlhex,.9,2.5);
+      b2(CX,CY,rfx,rfy,`rgba(${rlc[0]},${rlc[1]},${rlc[2]},.1)`,.6,13);
+      p2(CX+Math.sin(i2)*R*.72*pt,CY-Math.cos(i2)*R*.72*pt,rlhex);
+      lbl2(`refracted  i₂=${(i2*180/Math.PI).toFixed(1)}°`,
+        rfx+Math.cos(i2)*16,rfy-Math.sin(i2)*16-5,rlhex,'500 11px Inter,sans-serif');
+    }
+    b2(CX,CY,CX+Math.sin(rad)*iL*.3,CY+Math.cos(rad)*iL*.3,'rgba(21,101,192,.18)',.28,1.5);
+  }
+
+  // angle arc
+  ctx2.save();ctx2.beginPath();ctx2.arc(CX,CY,28,Math.PI/2,Math.PI/2+rad,false);
+  ctx2.strokeStyle='rgba(0,191,165,.55)';ctx2.lineWidth=1.5;ctx2.stroke();ctx2.restore();
+  // liquid label
+  ctx2.save();ctx2.font='500 12px Inter,sans-serif';
+  ctx2.fillStyle=rlhex;ctx2.textAlign='center';ctx2.textBaseline='middle';
+  ctx2.fillText(q4Active&&bestLiq?`${bestLiq.name}  (n=${bestLiq.n})`:'Unknown liquid  n₂=?',CX,CY-14);
+  ctx2.restore();
+  lbl2('glass  n₁=1.60',CX-R+8,CY+17,'rgba(13,33,55,.3)','11px Space Mono,monospace','left');
+}
+function b2(x1,y1,x2,y2,col,a,w){
+  ctx2.save();ctx2.globalAlpha=a;ctx2.strokeStyle=col;ctx2.lineWidth=w;
+  ctx2.shadowColor=col;ctx2.shadowBlur=7;
+  ctx2.beginPath();ctx2.moveTo(x1,y1);ctx2.lineTo(x2,y2);ctx2.stroke();ctx2.restore();
+}
+function p2(x,y,col){
+  ctx2.save();ctx2.beginPath();ctx2.arc(x,y,4.5,0,Math.PI*2);
+  ctx2.fillStyle=col;ctx2.shadowColor=col;ctx2.shadowBlur=14;ctx2.fill();ctx2.restore();
+}
+function lbl2(t,x,y,col,font,align='center'){
+  ctx2.save();ctx2.font=font||'11px Inter,sans-serif';
+  ctx2.fillStyle=col;ctx2.textAlign=align;ctx2.fillText(t,x,y);ctx2.restore();
+}
+
+// ══════════════════════════════════════════════════════
+// 3D — COMPLETELY REWRITTEN
+// ══════════════════════════════════════════════════════
+let sc,cam,ren,sceneGroup,liqMeshRef;
+let isDragging=false,lastMouseX=0,rotationY=0.4;
+let incidentRay=null,reflectedRay=null,refractedRay=null,labelSprites=[];
+
+function start3d(){
+  const wrap=document.getElementById('c3d-wrap');
+  wrap.innerHTML='';
+  const _cva=document.getElementById('cva');
+  const W=wrap.clientWidth||_cva.clientWidth||800;
+  const H=wrap.clientHeight||_cva.clientHeight||600;
+
+  sc=new THREE.Scene();
+  sc.background=new THREE.Color(0xeef5f8);
+  sc.fog=new THREE.FogExp2(0xeef5f8,0.035);
+
+  cam=new THREE.PerspectiveCamera(42,W/H,.1,100);
+  cam.position.set(0,3.5,9);
+  cam.lookAt(0,0,0);
+
+  ren=new THREE.WebGLRenderer({antialias:true,alpha:false});
+  ren.setPixelRatio(Math.min(devicePixelRatio,2));
+  ren.setSize(W,H);
+  ren.shadowMap.enabled=true;
+  wrap.appendChild(ren.domElement);
+
+  // Lighting
+  const ambient=new THREE.AmbientLight(0xffffff,1.4);sc.add(ambient);
+  const sun=new THREE.DirectionalLight(0xffffff,1.1);sun.position.set(6,8,4);sc.add(sun);
+  const fill=new THREE.DirectionalLight(0xcce8ff,.6);fill.position.set(-4,2,-3);sc.add(fill);
+  const tqLight=new THREE.PointLight(0x00bfa5,1.8,15);tqLight.position.set(0,4,2);sc.add(tqLight);
+  // Liquid-color accent light (tagged for color updates)
+  const liqLight=new THREE.PointLight(0x1e88e5,2.2,10);
+  liqLight.position.set(0,1,1);
+  liqLight.userData.role='liqLight';
+  sc.add(liqLight);
+
+  // Floor grid
+  const grid=new THREE.GridHelper(20,40,0xb2dfdb,0xdce8ec);
+  grid.position.y=-2.2;sc.add(grid);
+
+  // Main scene group (rotates on drag)
+  sceneGroup=new THREE.Group();
+  sc.add(sceneGroup);
+
+  buildHalfCylinder();
+  rebuild3Rays();
+  attachDragHandlers(wrap);
+  window.addEventListener('resize',on3dRsz);
+  loop3d();
+}
+
+// ── SOLID HALF-CYLINDER using LatheGeometry + custom caps ──
+function buildHalfCylinder(){
+  // Clear old meshes
+  while(sceneGroup.children.length>0)sceneGroup.remove(sceneGroup.children[0]);
+  liqMeshRef=null;
+
+  const R=1.8, D=3.6, SEG=48;
+  const lc=bestLiq?bestLiq.rgb:[30,136,229];
+
+  // ── Glass body: bottom half-cylinder ──
+  // Use CylinderGeometry, clip to bottom half with a custom shape
+  // Better approach: use ExtrudeGeometry with a half-circle shape
+
+  // Half-circle shape (bottom half: y from 0 to -R)
+  const halfCircleShape=new THREE.Shape();
+  halfCircleShape.moveTo(-R,0);
+  for(let i=0;i<=SEG;i++){
+    const t=Math.PI*(i/SEG); // 0 → PI
+    halfCircleShape.lineTo(-Math.cos(t)*R,-Math.sin(t)*R);
+  }
+  halfCircleShape.lineTo(R,0);
+  halfCircleShape.closePath();
+
+  const extrudeSettings={
+    depth:D,
+    bevelEnabled:false,
+    steps:1
+  };
+
+  const glassGeo=new THREE.ExtrudeGeometry(halfCircleShape,extrudeSettings);
+  // Center along Z
+  glassGeo.translate(0,0,-D/2);
+
+  const glassMat=new THREE.MeshPhongMaterial({
+    color:0x4dd0e1,
+    emissive:0x004d55,
+    emissiveIntensity:0.15,
+    transparent:true,
+    opacity:0.55,
+    shininess:140,
+    side:THREE.DoubleSide,
+    depthWrite:false,
+  });
+  const glassMesh=new THREE.Mesh(glassGeo,glassMat);
+  glassMesh.userData.role='glass';
+  sceneGroup.add(glassMesh);
+
+  // ── Liquid layer: thin rectangle on top (flat face) ──
+  const liqH=0.18;
+  const liqGeo=new THREE.BoxGeometry(R*2,liqH,D);
+  const liqMat=new THREE.MeshPhongMaterial({
+    color:new THREE.Color(lc[0]/255,lc[1]/255,lc[2]/255),
+    emissive:new THREE.Color(lc[0]/255,lc[1]/255,lc[2]/255),
+    emissiveIntensity:0.4,
+    transparent:true,
+    opacity:0.7,
+    shininess:60,
+  });
+  liqMeshRef=new THREE.Mesh(liqGeo,liqMat);
+  liqMeshRef.userData.role='liquid';
+  liqMeshRef.position.set(0,liqH/2,0);
+  sceneGroup.add(liqMeshRef);
+
+  // ── Flat face (top) wireframe border ──
+  const borderMat=new THREE.LineBasicMaterial({color:0x00bfa5,linewidth:2});
+  const borderPts=[
+    new THREE.Vector3(-R,0,-D/2),new THREE.Vector3(R,0,-D/2),
+    new THREE.Vector3(R,0,D/2),new THREE.Vector3(-R,0,D/2),
+    new THREE.Vector3(-R,0,-D/2)
+  ];
+  const borderGeo=new THREE.BufferGeometry().setFromPoints(borderPts);
+  const borderLine=new THREE.Line(borderGeo,borderMat);
+  borderLine.userData.role='border';
+  sceneGroup.add(borderLine);
+
+  // ── Curved edge highlight ──
+  const curvePts=[];
+  for(let i=0;i<=SEG*2;i++){
+    const t=Math.PI*(i/(SEG*2));
+    curvePts.push(new THREE.Vector3(-Math.cos(t)*R,-Math.sin(t)*R,-D/2));
+  }
+  const curve2=[];
+  for(let i=0;i<=SEG*2;i++){
+    const t=Math.PI*(i/(SEG*2));
+    curve2.push(new THREE.Vector3(-Math.cos(t)*R,-Math.sin(t)*R,D/2));
+  }
+  const cMat=new THREE.LineBasicMaterial({color:0x1565c0,linewidth:2});
+  sceneGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curvePts),cMat));
+  sceneGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve2),cMat.clone()));
+
+  // ── Normal line (dashed via segments) ──
+  const normMat=new THREE.LineDashedMaterial({color:0x90a4ae,dashSize:.15,gapSize:.1,linewidth:1});
+  const normPts=[new THREE.Vector3(0,1.5,0),new THREE.Vector3(0,-1.5,0)];
+  const normLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints(normPts),normMat);
+  normLine.computeLineDistances();
+  sceneGroup.add(normLine);
+
+  // Apply initial rotation
+  sceneGroup.rotation.y=rotationY;
+}
+
+function updateLiq3(){
+  if(!sceneGroup||!bestLiq)return;
+  const [r,g,b]=bestLiq.rgb;
+  const rc=r/255,gc=g/255,bc=b/255;
+  const liqCol=new THREE.Color(rc,gc,bc);
+
+  // Walk sceneGroup children and recolor everything
+  sceneGroup.traverse(obj=>{
+    if(!obj.isMesh&&!obj.isLine)return;
+    const m=obj.material;
+    if(!m)return;
+    const name=obj.userData.role||'';
+
+    if(name==='liquid'){
+      m.color.copy(liqCol);
+      m.emissive.copy(liqCol);
+      m.emissiveIntensity=0.45;
+    } else if(name==='glass'){
+      // Tint glass subtly with liquid color
+      const glassBase=new THREE.Color(0x4dd0e1);
+      glassBase.lerp(liqCol,.25);
+      m.color.copy(glassBase);
+      m.emissive.copy(liqCol);
+      m.emissiveIntensity=0.08;
+    } else if(name==='border'){
+      m.color.copy(liqCol);
+    }
+  });
+
+  // Update tq point light color
+  if(sc){
+    sc.traverse(obj=>{
+      if(obj.isPointLight&&obj.userData.role==='liqLight'){
+        obj.color.copy(liqCol);
+      }
+    });
+    // Update fog tint
+    if(sc.fog)sc.fog.color.set(
+      new THREE.Color(0.93+rc*.04, 0.95+gc*.02, 0.97+bc*.02)
+    );
+  }
+
+  // Rebuild rays so refracted ray uses new liquid color
+  rebuild3Rays();
+}
+
+// ── RAYS ──
+function clearRays(){
+  [incidentRay,reflectedRay,refractedRay].forEach(o=>{if(o&&sceneGroup)sceneGroup.remove(o);});
+  incidentRay=reflectedRay=refractedRay=null;
+  labelSprites.forEach(s=>{if(s&&sceneGroup)sceneGroup.remove(s);});
+  labelSprites=[];
+}
+
+function rebuild3Rays(){
+  clearRays();
+  if(!sc||!sceneGroup)return;
+
+  const rad=angle*Math.PI/180,L=4.2;
+  const hitPt=new THREE.Vector3(0,0,0);
+  const incFrom=new THREE.Vector3(-Math.sin(rad)*L,-Math.cos(rad)*L,0);
+
+  // Incident ray (blue) — added to sceneGroup so it rotates with cylinder
+  incidentRay=makeRayMesh(incFrom,hitPt,0x1565c0,0x5588cc,0.05);
+  sceneGroup.add(incidentRay);
+
+  const midI=incFrom.clone().lerp(hitPt,.5);
+  addLabel3(`iₒ = ${angle}°`,midI.x-.2,midI.y+.3,midI.z,'#1565c0');
+
+  // Unknown liquid color until step 4
+  const k3=q4Active&&bestLiq;
+  const lhex3=k3?bestLiq.hex:'#78909c';
+  const lcol3=k3?parseInt(bestLiq.hex.replace('#',''),16):0x78909c;
+
+  if(tir){
+    // TIR: reflected only
+    const rEnd=new THREE.Vector3(Math.sin(rad)*L,-Math.cos(rad)*L,0);
+    reflectedRay=makeRayMesh(hitPt,rEnd,0x00bfa5,0x00e5cc,0.055);
+    sceneGroup.add(reflectedRay);
+    const midR=hitPt.clone().lerp(rEnd,.48);
+    addLabel3(`reflected  r=${angle}°`,
+      midR.x-Math.cos(rad)*.65,midR.y-Math.sin(rad)*.65+.18,midR.z,'#00897b');
+    addLabel3(`⚡ TIR at i=${angle}°`,0,1.0,0,'#00bfa5',true);
+
+  } else if(Math.abs(angle-TARGET.ic)<1.2){
+    // AT critical angle: horizontal grazing ray
+    const grazEnd=new THREE.Vector3(L*.85,0,0);
+    refractedRay=makeRayMesh(hitPt,grazEnd,lcol3,lcol3,0.045);
+    sceneGroup.add(refractedRay);
+    addLabel3('refracted  i₂=90°',L*.43,.45,0,lhex3);
+    addLabel3(`iₒ≈${angle}° critical!`,0,1.0,0,'#00bfa5',true);
+
+  } else {
+    // Normal refraction using TARGET physics
+    const sinI2=N1*Math.sin(rad)/TARGET.n;
+    if(sinI2<1){
+      const i2=Math.asin(sinI2);
+      const rfrEnd=new THREE.Vector3(Math.sin(i2)*L*.85,Math.cos(i2)*L*.85,0);
+      refractedRay=makeRayMesh(hitPt,rfrEnd,lcol3,lcol3,0.045);
+      sceneGroup.add(refractedRay);
+      const midRF=hitPt.clone().lerp(rfrEnd,.5);
+      addLabel3(`refracted  i₂=${(i2*180/Math.PI).toFixed(1)}°`,
+        midRF.x+Math.cos(i2)*.7,midRF.y-Math.sin(i2)*.7+.1,midRF.z,lhex3);
+    }
+  }
+
+  // Info panel
+  const n2=(N1*Math.sin(rad)).toFixed(4);
+  addLabel3('glass  n₁=1.60',-3.5,-1.3,0,'#1565c0');
+  addLabel3(`liquid: ${k3?bestLiq.name:'???'}`,-3.5,.6,0,lhex3);
+  addLabel3(`n₂=${n2}`,-3.5,1.15,0,'#00897b');
+}
+
+function makeRayMesh(from,to,color,glowColor,r){
+  const dir=new THREE.Vector3().subVectors(to,from);
+  const len=dir.length();
+  const g=new THREE.Group();
+
+  // Core beam
+  const coreMat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.95});
+  const coreGeo=new THREE.CylinderGeometry(r,r,len,8,1);
+  g.add(new THREE.Mesh(coreGeo,coreMat));
+
+  // Glow
+  const glowMat=new THREE.MeshBasicMaterial({color:glowColor,transparent:true,opacity:.18});
+  const glowGeo=new THREE.CylinderGeometry(r*4,r*4,len,8,1);
+  g.add(new THREE.Mesh(glowGeo,glowMat));
+
+  // Arrow tip
+  const arrMat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.95});
+  const arrGeo=new THREE.ConeGeometry(r*2.5,r*8,8);
+  const arr=new THREE.Mesh(arrGeo,arrMat);
+  arr.position.y=len/2+r*4;
+  g.add(arr);
+
+  g.position.copy(from.clone().lerp(to,.5));
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+  return g;
+}
+
+function addLabel3(text,x,y,z,color,big){
+  const fs=big?44:28;
+  const font=`${big?'bold ':''}${fs}px Inter,sans-serif`;
+  const tmpCtx=document.createElement('canvas').getContext('2d');
+  tmpCtx.font=font;
+  const tw=tmpCtx.measureText(text).width;
+  const PAD=16;
+  const cv=document.createElement('canvas');
+  cv.width=Math.ceil(tw+PAD*2+4);
+  cv.height=Math.ceil(fs*1.7);
+  const c=cv.getContext('2d');
+  const bx=3,by=3,bw=cv.width-6,bh=cv.height-6,br=bh/2;
+  c.fillStyle='rgba(255,255,255,.88)';
+  c.beginPath();
+  c.moveTo(bx+br,by);
+  c.lineTo(bx+bw-br,by);
+  c.arcTo(bx+bw,by,bx+bw,by+br,br);
+  c.lineTo(bx+bw,by+bh-br);
+  c.arcTo(bx+bw,by+bh,bx+bw-br,by+bh,br);
+  c.lineTo(bx+br,by+bh);
+  c.arcTo(bx,by+bh,bx,by+bh-br,br);
+  c.lineTo(bx,by+br);
+  c.arcTo(bx,by,bx+br,by,br);
+  c.closePath();
+  c.fill();
+  c.font=font;c.fillStyle=color;c.textAlign='center';c.textBaseline='middle';
+  c.fillText(text,cv.width/2,cv.height/2);
+  const tex=new THREE.CanvasTexture(cv);
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+  spr.position.set(x,y,z);
+  spr.scale.set(cv.width/160,cv.height/160,1);
+  // Add to sceneGroup so labels rotate with the cylinder
+  sceneGroup.add(spr);
+  labelSprites.push(spr);
+}
+
+// ── DRAG ──
+function attachDragHandlers(el){
+  el.addEventListener('mousedown',e=>{
+    isDragging=true;lastMouseX=e.clientX;
+    el.style.cursor='grabbing';
+  });
+  window.addEventListener('mouseup',()=>{
+    isDragging=false;
+    if(el)el.style.cursor='grab';
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    const dx=e.clientX-lastMouseX;
+    rotationY+=dx*0.012;
+    lastMouseX=e.clientX;
+    if(sceneGroup)sceneGroup.rotation.y=rotationY;
+  });
+
+  // Touch
+  el.addEventListener('touchstart',e=>{
+    isDragging=true;lastMouseX=e.touches[0].clientX;
+  },{passive:true});
+  window.addEventListener('touchend',()=>{isDragging=false;});
+  window.addEventListener('touchmove',e=>{
+    if(!isDragging)return;
+    const dx=e.touches[0].clientX-lastMouseX;
+    rotationY+=dx*0.012;
+    lastMouseX=e.touches[0].clientX;
+    if(sceneGroup)sceneGroup.rotation.y=rotationY;
+  },{passive:true});
+
+  el.style.cursor='grab';
+}
+
+function on3dRsz(){
+  if(!ren||!cam)return;
+  const wrap=document.getElementById('c3d-wrap');
+  const _cva=document.getElementById('cva');
+  const W=wrap.clientWidth||_cva.clientWidth;
+  const H=wrap.clientHeight||_cva.clientHeight;
+  if(!W||!H)return;
+  cam.aspect=W/H;
+  cam.updateProjectionMatrix();
+  ren.setSize(W,H);
+}
+function kill3d(){
+  isDragging=false;
+  if(raf3){cancelAnimationFrame(raf3);raf3=null;}
+  window.removeEventListener('resize',on3dRsz);
+  if(ren){ren.dispose();ren=null;}
+  document.getElementById('c3d-wrap').innerHTML='';
+  sc=cam=sceneGroup=liqMeshRef=null;
+  incidentRay=reflectedRay=refractedRay=null;labelSprites=[];
+}
+function loop3d(){
+  if(mode!=='3d')return;
+  if(ren&&sc&&cam)ren.render(sc,cam);
+  raf3=requestAnimationFrame(loop3d);
+}
+
+// ══════════════════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════════════════
+let pCtx;
+function initPfx(){
+  const pc=document.getElementById('pfx');
+  const a=document.getElementById('cva');
+  pc.width=a.clientWidth;pc.height=a.clientHeight;
+  pCtx=pc.getContext('2d');pfxLoop();
+}
+function pfxLoop(){
+  if(pCtx){
+    pCtx.clearRect(0,0,pCtx.canvas.width,pCtx.canvas.height);
+    parts=parts.filter(p=>p.l>0);
+    parts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.l--;
+      pCtx.save();pCtx.globalAlpha=p.l/p.m;
+      pCtx.beginPath();pCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      pCtx.fillStyle=p.c;pCtx.shadowColor=p.c;pCtx.shadowBlur=7;
+      pCtx.fill();pCtx.restore();
+    });
+  }
+  requestAnimationFrame(pfxLoop);
+}
+function mkp(x,y,vx,vy,c,r,l){parts.push({x,y,vx,vy,c,r,l,m:l});}
+function spawnTirP(){
+  if(parts.length>80)return;
+  const a=document.getElementById('cva');
+  const cx=a.clientWidth/2,cy=a.clientHeight*.54;
+  for(let i=0;i<6;i++){
+    const th=Math.random()*Math.PI*2;
+    mkp(cx,cy,Math.cos(th)*3,Math.sin(th)*3-1.6,
+      ['#00bfa5','#1e88e5','#fff'][i%3],Math.random()*2.5+1,32);
+  }
+}
+function spawnBurst(){
+  const a=document.getElementById('cva');
+  const cx=a.clientWidth/2,cy=a.clientHeight/2;
+  for(let i=0;i<90;i++){
+    const th=Math.random()*Math.PI*2,sp=Math.random()*7+2;
+    mkp(cx,cy,Math.cos(th)*sp,Math.sin(th)*sp-2,
+      ['#00bfa5','#1565c0','#00897b','#f57f17','#fb8c00'][i%5],
+      Math.random()*4+1,62);
+  }
+}
+
+window.addEventListener('load',()=>{
+  document.getElementById('asl').style.setProperty('--pct',(56/89*100)+'%');
+});
+</script>
+</body>
+</html>
