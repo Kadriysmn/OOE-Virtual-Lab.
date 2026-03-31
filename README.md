@@ -13,38 +13,34 @@
   3. [SENAD Zehira  ]
   4. [MAHROUG Alae]
   5. [ROHNI Ikhlas]
-## 📂 PROJECT THEMES
+# OOE Virtual Laboratory: Optical & EM Systems (G4 - ENSTA 2025–2026)
 
-### Theme 1: Physics of Refraction & Engineering Applications
-* Geometric modeling of refraction (Snell-Descartes laws).
-* Apparent depth phenomena and underwater robotic guidance.
-* Fiber optics: Critical angles and total internal reflection.
+## Physics Formulas Used
 
-### Theme 2: Biophysics of Vision & Optical Correction
-* Modeling the human eye (Relaxed vs. Accommodated).
-* Physiological causes of Myopia and corrective lens simulations.
+- Track 1: Snell’s Law (First Refraction Law)  
+  \( n_1 \sin \theta_1 = n_2 \sin \theta_2 \)  
+  → Used to simulate light refraction at a single interface.
 
-### Theme 3: Advanced Projection & Surveillance Systems
-* Ray tracing for video projectors and image inversion.
-* Wide-angle visualization through door peepholes (-10D lenses).
+- Track 2: Snell’s Law (Second Refraction Law / Double Refraction)  
+  \( n_1 \sin \theta_1 = n_2 \sin \theta_2 \)  
+  → Used when light passes through two consecutive media with different refractive indices.
 
-### Theme 4: EM Waves, Interference & Diffraction
-* Wave propagation and Electromagnetic spectrum.
-* Modeling Young’s double-slit interference patterns.
-* Diffraction impact on resolution in Computer Vision.
+- Track 3: Beer-Lambert Law  
+  \( A = \varepsilon c l \)  
+  → Used to simulate light absorption in a medium depending on concentration and path length.
+
+## How to use the simulation
+
+1. Open the simulation using the GitHub Pages link.  
+2. Select the desired track (Track 1, Track 2, Track 3).  
+3. Adjust parameters for each track:
+   - Track 1 & 2: angles of incidence, refractive indices  
+   - Track 3: concentration, path length, molar absorptivity  
+4. Observe how light behaves according to the law of that track.  
+5. Compare simulation results with theoretical expectations.  
+6. Repeat with different values to explore physical behavior in each track.  
 
 ---
-
-## 🚀 SUBMISSION INSTRUCTIONS (FOR PROJECT LEADERS)
-
-⚠️ **Strict Policy:** Only the **Project Leader (Chef de Projet)** is authorized to manage the repository and push the final code.
-
-1. **Fork:** The Project Leader must fork this repository.
-2. **Identification:** Fill in the "Team Identification" section above.
-3. **Upload:** Push your HTML/JS simulations and technical documentation to your fork.
-4. **GitHub Pages:** Activate "GitHub Pages" in your settings to make your simulation live.
-5. **Final Link:** Share your repository URL with Dr. Cheggou for final archiving.
-6. ---
 
 ## 🔗 LIVE DEMO
 > **Instruction for Project Leaders:** Once you have activated **GitHub Pages** in your settings, replace the URL below with your actual live link.
